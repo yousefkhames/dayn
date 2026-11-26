@@ -30,6 +30,7 @@
       privacy: 'بياناتك تبقى في هذا المتصفح فقط. لا حساب ولا سيرفر. امسح بيانات المتصفح وستختفي، لذلك صدّر نسخة احتياطية.',
       about: 'Dayn أداة تخطيط وليست استشارة مالية. الحساب يفترض فائدة شهرية ثابتة ودفعات في موعدها.',
       copyPlan: 'نسخ ملخص الخطة', copied: 'تم النسخ', msHit: 'محطة جديدة', warnMin: 'الحد الأدنى أقل من الفائدة الشهرية',
+      thisMonth: 'هذا الشهر', monthDone: 'تم الحد الأدنى',
       saved: 'تم الحفظ', logged: 'تم تسجيل الدفعة', imported: 'تم الاستيراد', badFile: 'الملف غير صالح', invalid: 'تحقق من الاسم والرصيد',
       celebrate: 'مبروك! سددت', allDone: 'أنت حر من الديون. هذا إنجاز حقيقي.',
       free: 'حر', activeDebts: 'ديون نشطة', monthlyOut: 'ميزانية السداد', pctDone: 'منجز',
@@ -70,6 +71,7 @@
       privacy: 'Your data stays in this browser only. No account, no server. Clearing browser data erases it, so export a backup.',
       about: 'Dayn is a planning tool, not financial advice. It assumes a fixed monthly interest rate and on-time payments.',
       copyPlan: 'Copy plan summary', copied: 'Copied', msHit: 'New milestone', warnMin: 'Minimum is below the monthly interest',
+      thisMonth: 'This month', monthDone: 'Minimum covered',
       saved: 'Saved', logged: 'Payment logged', imported: 'Imported', badFile: 'Invalid file', invalid: 'Check name and balance',
       celebrate: 'Congrats! You paid off', allDone: 'You are debt-free. That is a real achievement.',
       free: 'Free', activeDebts: 'active debts', monthlyOut: 'Payoff budget', pctDone: 'done',
@@ -207,10 +209,27 @@
     if (sum.interestSaved !== null && state.extra > 0) h += '<p class="small" id="saved-line" style="margin:10px 0 0"><b>' + money(sum.interestSaved) + '</b> ' + t('saveInt') + '<br>' + t('earlier') + ' <b class="num">' + nInt(sum.monthsSaved) + '</b> ' + t('months') + ' (' + t('vsMin') + ')</p>';
     h += '</div>';
 
+    h += monthCard(act);
     h += compareCard();
     h += '<div class="row"><button class="btn ghost" data-act="copy">' + t('copyPlan') + '</button></div>';
     h += motivationCard(p);
     return h;
+  }
+
+  function paidThisMonth(id) {
+    var n = new Date(), tot = 0;
+    state.log.forEach(function (e) {
+      var d = new Date(e.date);
+      if (e.debtId === id && d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth()) tot += e.amount;
+    });
+    return tot;
+  }
+  function monthCard(act) {
+    return '<div class="card"><div class="card-h"><h2>' + t('thisMonth') + '</h2></div><ul class="log" id="month-list">' + act.map(function (d) {
+      var paid = paidThisMonth(d.id), ok = paid >= Math.min(d.min, d.balance + paid) - 0.005 && d.min > 0;
+      return '<li data-month="' + d.id + '" data-ok="' + ok + '"><div><b>' + esc(d.name) + '</b><br><span class="mute small">' + money(paid) + ' / ' + money(d.min) + '</span></div>' +
+        (ok ? '<span class="tag ok">✓ ' + t('monthDone') + '</span>' : '<button class="btn sm green" data-pay="' + d.id + '">' + t('pay') + '</button>') + '</li>';
+    }).join('') + '</ul></div>';
   }
 
   function whatIfOut(x) {

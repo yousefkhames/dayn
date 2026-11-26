@@ -78,6 +78,8 @@ function ok(c, m) { if (!c) { throw new Error('FAIL: ' + m); } n++; console.log(
   ok(copied && copied.includes('Visa card') && copied.includes('Debt-free'), 'copy summary writes plan text');
   // chart present
   ok(!!(await p.$('svg.chart path')), 'chart rendered');
+  // this-month checklist starts unpaid
+  ok((await p.$$('#month-list li[data-ok="false"]')).length === 2, 'month checklist shows both minimums pending');
   // log a payment
   await nav('debts');
   await p.click('[data-pay]');
@@ -88,6 +90,7 @@ function ok(c, m) { if (!c) { throw new Error('FAIL: ' + m); } n++; console.log(
   ok((await p.$$('.log li')).length === 1, 'payment appears in log');
   await nav('plan');
   ok((await txt('#streak')).trim() === '1', 'streak is 1 after paying this month');
+  ok((await p.$$('#month-list li[data-ok="true"]')).length === 1, 'month checklist ticks the debt whose minimum was covered');
   // warning when minimum below interest
   await nav('debts');
   await p.click('[data-act="add"]');
