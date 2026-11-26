@@ -144,6 +144,24 @@ function ok(c, m) { if (!c) { throw new Error('FAIL: ' + m); } n++; console.log(
   await p.click('#btn-theme');
   // no horizontal overflow
   ok(await p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'no horizontal overflow on mobile');
+  // import: bad file rejected, good file accepted
+  const fs = require('fs');
+  fs.writeFileSync('/tmp/dayn-bad.json', '{"nope":1}');
+  fs.writeFileSync('/tmp/dayn-good.json', JSON.stringify({ v: 1, lang: 'en', theme: 'light', currency: 'USD', extra: 50, strategy: 'avalanche', custom: [], debts: [{ id: 'z1', name: 'Imported loan', balance: 1200, original: 2000, apr: 10, min: 100 }], log: [] }));
+  await nav('more');
+  await (await p.$('#imp')).uploadFile('/tmp/dayn-bad.json');
+  await p.waitForFunction(() => document.querySelector('#toast').textContent.length > 0 && document.querySelector('#toast').classList.contains('show'));
+  ok(!(await p.$eval('#toast', e => e.textContent)).includes('Imported'), 'invalid backup file rejected');
+  await (await p.$('#imp')).uploadFile('/tmp/dayn-good.json');
+  await p.waitForFunction(() => document.querySelector('#toast').textContent === 'Imported');
+  await nav('debts');
+  ok((await p.$eval('#view', e => e.textContent)).includes('Imported loan'), 'valid backup imported');
+  // Escape closes the sheet
+  await p.click('[data-act="add"]');
+  ok(!!(await p.$('.sheet')), 'sheet opens');
+  await p.keyboard.press('Escape');
+  ok(!(await p.$('.sheet')), 'Escape closes the sheet');
+  await nav('more');
   // reset
   await p.click('[data-act="reset"]');
   await nav('debts');
