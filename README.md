@@ -11,6 +11,15 @@
 <img src="docs/shots/plan-en.png" width="230" alt="Plan screen in English">
 </p>
 
+## Screenshots
+
+Captured from the live site (https://yousefkhames.github.io/dayn/).
+
+<p>
+  <img src="docs/screenshots/live-desktop.png" alt="dayn desktop view" width="640">
+  <img src="docs/screenshots/live-mobile.png" alt="dayn mobile view" width="200">
+</p>
+
 ## Pitch
 
 Most debt apps want an account and your bank login. Dayn wants four numbers per debt: balance, yearly interest, minimum payment, and what extra you can add each month. It then shows the month you finish, how much interest you save, and keeps you going with milestones and a payment streak.
