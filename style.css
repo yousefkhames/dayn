@@ -92,8 +92,8 @@ input[type=range]{padding:0;accent-color:var(--red);min-height:32px}
 
 /* motivation */
 .quote{font-size:1.1rem;font-weight:700;line-height:1.6;border-inline-start:5px solid var(--amber);padding-inline-start:12px}
-.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.badge{border:1.5px solid var(--line);border-radius:14px;padding:8px 12px;text-align:center;min-width:64px;color:var(--mute);background:transparent}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.badge{flex:1 1 56px;border:1.5px solid var(--line);border-radius:14px;padding:8px 4px;text-align:center;font-size:.8rem;color:var(--mute);background:transparent}
 .badge b{display:block;font-size:1.1rem}
 .badge.on{background:var(--amber);border-color:var(--ink);color:#1c2430}
 .flame{font-size:1.3rem}

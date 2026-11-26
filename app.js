@@ -14,7 +14,7 @@
       customD: 'أنت تحدد الترتيب بالأسهم.',
       strategy: 'الاستراتيجية', extra: 'مبلغ إضافي شهرياً', extraH: 'فوق الحد الأدنى لكل الديون',
       whatIf: 'ماذا لو؟', whatIfD: 'جرب مبلغاً إضافياً بدون حفظه', useThis: 'اعتمد هذا المبلغ',
-      earlier: 'أبكر بـ', months: 'شهر', saveInt: 'توفر في الفوائد', vsMin: 'مقارنة بالحد الأدنى فقط',
+      earlier: 'أبكر بـ', months: 'شهر', saveInt: 'توفير في الفوائد', vsMin: 'مقارنة بالحد الأدنى فقط',
       order: 'ترتيب السداد', payoffOn: 'تسديد في', compare: 'مقارنة الاستراتيجيات',
       date: 'تاريخ الانتهاء', interest: 'إجمالي الفوائد', stratName: 'الاستراتيجية',
       chartT: 'رصيدك المتوقع', withPlan: 'مع خطتك', minOnly: 'حد أدنى فقط', now: 'الآن',
@@ -204,7 +204,7 @@
 
     // chart
     h += '<div class="card"><div class="card-h"><h2>' + t('chartT') + '</h2></div>' + chart(sum) + '<div class="legend"><span><i style="background:var(--red)"></i>' + t('withPlan') + '</span><span><i style="background:var(--mute);opacity:.6"></i>' + t('minOnly') + '</span></div>';
-    if (sum.interestSaved !== null && state.extra > 0) h += '<p class="small" style="margin:10px 0 0"><b>' + money(sum.interestSaved) + '</b> ' + t('saveInt') + ' · <b class="num">' + nInt(sum.monthsSaved) + '</b> ' + t('months') + ' ' + t('earlier') + ' ' + t('vsMin') + '</p>';
+    if (sum.interestSaved !== null && state.extra > 0) h += '<p class="small" id="saved-line" style="margin:10px 0 0"><b>' + money(sum.interestSaved) + '</b> ' + t('saveInt') + '<br>' + t('earlier') + ' <b class="num">' + nInt(sum.monthsSaved) + '</b> ' + t('months') + ' (' + t('vsMin') + ')</p>';
     h += '</div>';
 
     h += compareCard();

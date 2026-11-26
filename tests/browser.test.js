@@ -70,6 +70,7 @@ function ok(c, m) { if (!c) { throw new Error('FAIL: ' + m); } n++; console.log(
   await p.click('[data-act="use-whatif"]');
   const date2 = await txt('#free-date');
   ok(date2 !== '∞', 'what-if applied: ' + date2);
+  ok(!!(await p.$('#saved-line')), 'interest-saved line shown when extra > 0');
   // copy summary
   await p.evaluate(() => { window.__copied = null; Object.defineProperty(navigator, 'clipboard', { value: { writeText: x => { window.__copied = x; return Promise.resolve(); } }, configurable: true }); });
   await p.click('[data-act="copy"]');
@@ -171,6 +172,7 @@ function ok(c, m) { if (!c) { throw new Error('FAIL: ' + m); } n++; console.log(
   await nav('plan');
   ok(!!(await p.$('.hero')) && (await txt('#free-date')) !== '∞', 'sample data gives a plan');
   if (shots) {
+    await new Promise(r => setTimeout(r, 2800));
     await p.evaluate(() => window.scrollTo(0, 0));
     await p.screenshot({ path: shots + '/plan-ar.png' });
     await p.screenshot({ path: shots + '/plan-ar-full.png', fullPage: true });
