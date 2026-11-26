@@ -29,6 +29,7 @@
       confirmReset: 'سيتم مسح كل بياناتك من هذا المتصفح. متأكد؟', confirmDel: 'حذف هذا الدين وسجل دفعاته؟', undoPay: 'حذف الدفعة يرجع المبلغ للرصيد',
       privacy: 'بياناتك تبقى في هذا المتصفح فقط. لا حساب ولا سيرفر. امسح بيانات المتصفح وستختفي، لذلك صدّر نسخة احتياطية.',
       about: 'Dayn أداة تخطيط وليست استشارة مالية. الحساب يفترض فائدة شهرية ثابتة ودفعات في موعدها.',
+      copyPlan: 'نسخ ملخص الخطة', copied: 'تم النسخ', msHit: 'محطة جديدة', warnMin: 'الحد الأدنى أقل من الفائدة الشهرية',
       saved: 'تم الحفظ', logged: 'تم تسجيل الدفعة', imported: 'تم الاستيراد', badFile: 'الملف غير صالح', invalid: 'تحقق من الاسم والرصيد',
       celebrate: 'مبروك! سددت', allDone: 'أنت حر من الديون. هذا إنجاز حقيقي.',
       free: 'حر', activeDebts: 'ديون نشطة', monthlyOut: 'ميزانية السداد', pctDone: 'منجز',
@@ -68,6 +69,7 @@
       confirmReset: 'This erases all your data from this browser. Sure?', confirmDel: 'Delete this debt and its payments?', undoPay: 'Deleting a payment puts the amount back on the balance',
       privacy: 'Your data stays in this browser only. No account, no server. Clearing browser data erases it, so export a backup.',
       about: 'Dayn is a planning tool, not financial advice. It assumes a fixed monthly interest rate and on-time payments.',
+      copyPlan: 'Copy plan summary', copied: 'Copied', msHit: 'New milestone', warnMin: 'Minimum is below the monthly interest',
       saved: 'Saved', logged: 'Payment logged', imported: 'Imported', badFile: 'Invalid file', invalid: 'Check name and balance',
       celebrate: 'Congrats! You paid off', allDone: 'You are debt-free. That is a real achievement.',
       free: 'Free', activeDebts: 'active debts', monthlyOut: 'Payoff budget', pctDone: 'done',
@@ -206,6 +208,7 @@
     h += '</div>';
 
     h += compareCard();
+    h += '<div class="row"><button class="btn ghost" data-act="copy">' + t('copyPlan') + '</button></div>';
     h += motivationCard(p);
     return h;
   }
@@ -280,10 +283,11 @@
       var orig = Math.max(d.original || d.balance, d.balance);
       var pct = orig ? Math.round((orig - d.balance) / orig * 100) : 0;
       var done = d.balance <= 0.005;
+      var warn = !done && d.min < d.balance * d.apr / 100 / 12 - 0.005 ? '<div class="alert small" data-warn="1">⚠ ' + t('warnMin') + '</div>' : '';
       return '<article class="card debt" data-id="' + d.id + '"><div class="debt-top"><div><h3>' + esc(d.name) + '</h3><div style="margin-top:4px">' +
         (done ? '<span class="tag ok">✓ ' + t('paid') + '</span>' : (d.id === next ? '<span class="tag next">' + t('next') + '</span>' : '')) +
         '<span class="tag"><span class="num">' + plain(d.apr) + '%</span></span><span class="tag">' + money(d.min) + t('perMo') + '</span></div></div><div style="text-align:end"><b style="font-size:1.15rem">' + money(d.balance) + '</b><br><span class="mute small">' + t('of') + ' ' + money(orig) + '</span></div></div>' +
-        '<div class="bar" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + pct + '%"></i></div>' +
+        warn + '<div class="bar" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + pct + '%"></i></div>' +
         '<div class="row"><span class="mute small grow"><span class="num">' + pct + '%</span> ' + t('pctDone') + '</span>' +
         (done ? '' : '<button class="btn sm green" data-pay="' + d.id + '">' + t('pay') + '</button>') +
         '<button class="btn sm ghost" data-edit="' + d.id + '">' + t('edit') + '</button></div></article>';
@@ -362,10 +366,14 @@
     var d = state.debts.filter(function (x) { return x.id === id; })[0];
     if (!d || !(amt > 0)) { toast(t('invalid')); return; }
     amt = Math.min(amt, d.balance);
+    var before = E.milestones(E.progress(state.debts)).length;
     d.balance = E.round2(d.balance - amt);
     state.log.push({ at: Date.now(), debtId: id, amount: amt, date: date });
     save(); closeSheet();
-    if (d.balance <= 0.005) { d.balance = 0; save(); toast('🎉 ' + t('celebrate') + ' ' + d.name); } else toast(t('logged'));
+    var after = E.milestones(E.progress(state.debts));
+    if (d.balance <= 0.005) { d.balance = 0; save(); toast('🎉 ' + t('celebrate') + ' ' + d.name); }
+    else if (after.length > before) toast('🏅 ' + t('msHit') + ': ' + nInt(after[after.length - 1]) + '%');
+    else toast(t('logged'));
     render();
   }
 
@@ -387,6 +395,29 @@
     ];
     state.extra = 1000; state.log = []; state.custom = [];
     save(); render();
+  }
+
+  function summaryText() {
+    var sum = E.summarize(state.debts, state.extra, state.strategy, customOrder());
+    var now = new Date();
+    var lines = ['Dayn | ' + t(state.strategy) + ' | +' + plain(state.extra) + ' ' + state.currency + t('perMo')];
+    sum.plan.order.forEach(function (id, i) {
+      var d = state.debts.filter(function (x) { return x.id === id; })[0];
+      if (d) lines.push((i + 1) + '. ' + d.name + ' ' + plain(d.balance) + ' ' + state.currency + ' -> ' + (sum.plan.payoff[id] ? fmtDate(E.addMonths(now, sum.plan.payoff[id])) : '∞'));
+    });
+    lines.push(t('date') + ': ' + (sum.plan.never ? '∞' : fmtDate(E.addMonths(now, sum.plan.months))));
+    lines.push(t('interest') + ': ' + (sum.plan.never ? '∞' : plain(sum.plan.totalInterest) + ' ' + state.currency));
+    return lines.join('\n');
+  }
+  function copySummary() {
+    var txt = summaryText();
+    function fallback() {
+      var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+      ta.remove();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).catch(fallback); else fallback();
+    toast(t('copied'));
   }
 
   function exportData() {
@@ -444,6 +475,7 @@
     else if (a === 'close') closeSheet();
     else if (a === 'sample') sample();
     else if (a === 'use-whatif') { state.extra = whatIf; whatIf = null; save(); render(); toast(t('saved')); }
+    else if (a === 'copy') copySummary();
     else if (a === 'export') exportData();
     else if (a === 'reset') { if (confirm(t('confirmReset'))) { var keepLang = state.lang, keepTheme = state.theme; state = defaults(); state.lang = keepLang; state.theme = keepTheme; save(); render(); } }
   });

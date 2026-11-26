@@ -70,6 +70,11 @@ function ok(c, m) { if (!c) { throw new Error('FAIL: ' + m); } n++; console.log(
   await p.click('[data-act="use-whatif"]');
   const date2 = await txt('#free-date');
   ok(date2 !== '∞', 'what-if applied: ' + date2);
+  // copy summary
+  await p.evaluate(() => { window.__copied = null; Object.defineProperty(navigator, 'clipboard', { value: { writeText: x => { window.__copied = x; return Promise.resolve(); } }, configurable: true }); });
+  await p.click('[data-act="copy"]');
+  const copied = await p.evaluate(() => window.__copied);
+  ok(copied && copied.includes('Visa card') && copied.includes('Debt-free'), 'copy summary writes plan text');
   // chart present
   ok(!!(await p.$('svg.chart path')), 'chart rendered');
   // log a payment
@@ -82,6 +87,18 @@ function ok(c, m) { if (!c) { throw new Error('FAIL: ' + m); } n++; console.log(
   ok((await p.$$('.log li')).length === 1, 'payment appears in log');
   await nav('plan');
   ok((await txt('#streak')).trim() === '1', 'streak is 1 after paying this month');
+  // warning when minimum below interest
+  await nav('debts');
+  await p.click('[data-act="add"]');
+  await p.type('#fd-name', 'Loan shark');
+  await p.type('#fd-bal', '10000');
+  await p.type('#fd-apr', '60');
+  await p.type('#fd-min', '100');
+  await p.click('#f-debt button[type=submit]');
+  ok(!!(await p.$('[data-warn]')), 'warns when minimum is below monthly interest');
+  await p.click('[data-edit="' + (await p.$$eval('[data-edit]', els => els[els.length - 1].dataset.edit)) + '"]');
+  await p.click('[data-del]');
+  ok((await p.$$('.debt')).length === 2, 'debt deleted');
   // pay off a debt completely -> celebration + milestone
   await nav('debts');
   const ids = await p.$$eval('[data-pay]', els => els.map(e => e.dataset.pay));
