@@ -17,6 +17,9 @@ function ok(c, m) { if (!c) { throw new Error('FAIL: ' + m); } n++; console.log(
   const txt = s => p.$eval(s, e => e.textContent);
   ok(await p.$eval('html', h => h.dir) === 'rtl', 'default is Arabic RTL');
   ok((await p.$eval('.empty h2', e => e.textContent)).includes('ابدأ'), 'empty state in Arabic');
+  ok(await p.$eval('link[rel=manifest]', l => l.getAttribute('href')) === 'manifest.webmanifest', 'manifest linked');
+  const reg = await p.evaluate(() => navigator.serviceWorker.ready.then(r => !!r.active));
+  ok(reg, 'service worker active (offline cache)');
   // language toggle
   await p.click('#btn-lang');
   ok(await p.$eval('html', h => h.dir) === 'ltr', 'EN switches to LTR');
