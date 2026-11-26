@@ -137,8 +137,19 @@ function ok(c, m) { if (!c) { throw new Error('FAIL: ' + m); } n++; console.log(
   await p.type('#fd-bal', '10');
   await p.click('#f-debt button[type=submit]');
   ok(await p.evaluate(() => window.__x === undefined), 'names are escaped (no XSS)');
-  // never-payoff warning
+  // never-payoff warning on the plan
   await nav('plan');
+  await p.$eval('#extra', e => e.value = '0');
+  await p.$eval('#extra', e => e.dispatchEvent(new Event('change', { bubbles: true })));
+  await nav('debts');
+  await p.click('[data-act="add"]');
+  await p.type('#fd-name', 'Endless');
+  await p.type('#fd-bal', '50000');
+  await p.type('#fd-apr', '48');
+  await p.type('#fd-min', '10');
+  await p.click('#f-debt button[type=submit]');
+  await nav('plan');
+  ok(!!(await p.$('.hero + .stats + .alert')) && (await txt('#free-date')) === '∞', 'plan warns and shows infinity when payments never beat interest');
   // theme + settings
   await p.click('#btn-theme');
   ok(await p.$eval('html', h => h.dataset.theme) === 'dark', 'dark theme toggles');
