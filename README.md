@@ -61,3 +61,10 @@ The engine tests check results against a closed-form loan formula, rollover, str
 ## License
 
 MIT, see [LICENSE](LICENSE).
+
+
+## Demo / portfolio project
+
+Static GitHub Pages site. Data stays in your browser. Sample data is fictional and results are not professional, legal, medical or financial advice.
+
+By Yousef Khames · من تطوير يوسف خميس
